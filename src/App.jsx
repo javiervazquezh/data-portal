@@ -5,6 +5,7 @@ import Detail from "./components/Detail.jsx";
 import CreateWizard from "./components/CreateWizard.jsx";
 import Facet from "./components/Facet.jsx";
 import { TD, cls, useFacets, metrics, minsAgo } from "./helpers";
+import { HiSearch, HiX, HiFilter } from "react-icons/hi";
 
 /*****************************
  * TD BANK DEMO (NO BACKEND)
@@ -74,6 +75,8 @@ export default function App(){
   const [fLife,setFLife]=useState(new Set());
   const [fTag,setFTag]=useState(new Set());
 
+  const hasActiveFilters = fDomain.size > 0 || fType.size > 0 || fLife.size > 0 || fTag.size > 0;
+
   const results = useMemo(()=>{
     const txt=q.toLowerCase();
     return all.filter(p=>{
@@ -86,26 +89,104 @@ export default function App(){
     }).sort((a,b)=> (b.created_at||0)-(a.created_at||0));
   },[all,q,fDomain,fType,fLife,fTag]);
 
+  const clearAllFilters = () => {
+    setQ("");
+    setFDomain(new Set());
+    setFType(new Set());
+    setFLife(new Set());
+    setFTag(new Set());
+  };
+
   return (
     <div className="min-h-screen" style={{background:TD.surface,color:TD.text}}>
       <Header onCreate={()=>setShowCreate(true)} />
-      <main className="max-w-7xl mx-auto px-6 py-6 space-y-6">
-        <div className="flex flex-col md:flex-row gap-4 items-stretch">
-          <div className={`${cls.card} p-4 md:w-80 h-fit`}>
-            <div className="text-sm font-medium mb-2">Filters</div>
-            <Facet label="Domain" items={facets.domains} selected={fDomain} onToggle={(k)=>setFDomain(s=>new Set(s.has(k)?([...s].filter(x=>x!==k)):[...s,k]))} />
-            <div className="h-4"/>
-            <Facet label="Type" items={facets.types} selected={fType} onToggle={(k)=>setFType(s=>new Set(s.has(k)?([...s].filter(x=>x!==k)):[...s,k]))} />
-            <div className="h-4"/>
-            <Facet label="Lifecycle" items={facets.lifecycles} selected={fLife} onToggle={(k)=>setFLife(s=>new Set(s.has(k)?([...s].filter(x=>x!==k)):[...s,k]))} />
-            <div className="h-4"/>
-            <Facet label="Tags" items={facets.tags} selected={fTag} onToggle={(k)=>setFTag(s=>new Set(s.has(k)?([...s].filter(x=>x!==k)):[...s,k]))} />
-          </div>
-          <div className="flex-1 space-y-4">
-            <div className={`${cls.card} p-4 flex items-center gap-3`}>
-              <input className="flex-1 rounded-xl border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#00A859]" placeholder="Search name, description, schema, metadata..." value={q} onChange={e=>setQ(e.target.value)} />
-              <button onClick={()=>{setQ("");setFDomain(new Set());setFType(new Set());setFLife(new Set());setFTag(new Set());}} className={`px-3 py-2 rounded-xl ${cls.secondaryBtn}`}>Clear</button>
+      <main className="max-w-7xl mx-auto px-6 py-8 space-y-8">
+        <div className="flex flex-col lg:flex-row gap-8 items-start">
+          {/* Filters Sidebar */}
+          <div className={`${cls.card} p-6 lg:w-80 lg:sticky lg:top-8 space-y-6`}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <HiFilter className="w-5 h-5 text-slate-500" />
+                <h2 className="text-lg font-semibold text-slate-900">Filters</h2>
+              </div>
+              {hasActiveFilters && (
+                <button
+                  onClick={clearAllFilters}
+                  className="text-sm text-slate-500 hover:text-slate-700 transition-colors"
+                >
+                  Clear all
+                </button>
+              )}
             </div>
+            
+            <Facet 
+              label="Domain" 
+              items={facets.domains} 
+              selected={fDomain} 
+              onToggle={(k)=>setFDomain(s=>new Set(s.has(k)?([...s].filter(x=>x!==k)):[...s,k]))} 
+            />
+            
+            <Facet 
+              label="Type" 
+              items={facets.types} 
+              selected={fType} 
+              onToggle={(k)=>setFType(s=>new Set(s.has(k)?([...s].filter(x=>x!==k)):[...s,k]))} 
+            />
+            
+            <Facet 
+              label="Lifecycle" 
+              items={facets.lifecycles} 
+              selected={fLife} 
+              onToggle={(k)=>setFLife(s=>new Set(s.has(k)?([...s].filter(x=>x!==k)):[...s,k]))} 
+            />
+            
+            <Facet 
+              label="Tags" 
+              items={facets.tags} 
+              selected={fTag} 
+              onToggle={(k)=>setFTag(s=>new Set(s.has(k)?([...s].filter(x=>x!==k)):[...s,k]))} 
+            />
+          </div>
+          
+          {/* Main Content */}
+          <div className="flex-1 space-y-6">
+            {/* Search Bar */}
+            <div className={`${cls.card} p-4`}>
+              <div className="relative">
+                <HiSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+                <input 
+                  className="w-full pl-12 pr-12 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#00A859] focus:border-transparent text-slate-900 placeholder-slate-500 text-sm" 
+                  placeholder="Search data products by name, description, schema, or metadata..." 
+                  value={q} 
+                  onChange={e=>setQ(e.target.value)} 
+                />
+                {q && (
+                  <button
+                    onClick={() => setQ("")}
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                  >
+                    <HiX className="w-5 h-5" />
+                  </button>
+                )}
+              </div>
+              
+              {/* Results Summary */}
+              <div className="mt-3 flex items-center justify-between text-sm text-slate-600">
+                <span>
+                  Showing <span className="font-medium text-slate-900">{results.length}</span> of <span className="font-medium text-slate-900">{all.length}</span> data products
+                </span>
+                {(q || hasActiveFilters) && (
+                  <button
+                    onClick={clearAllFilters}
+                    className="text-[#00653A] hover:text-[#00A859] transition-colors font-medium"
+                  >
+                    Clear all filters
+                  </button>
+                )}
+              </div>
+            </div>
+            
+            {/* Catalog */}
             <Catalog items={results} onOpen={(id)=>setSel(id)} />
           </div>
         </div>

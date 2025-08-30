@@ -13,11 +13,11 @@ export const TD = {
 };
 
 export const cls = {
-  header: "sticky top-0 z-40 bg-gradient-to-r from-[#00653A] to-[#00924E] text-white shadow-sm",
-  primaryBtn: "bg-[#00A859] hover:bg-[#00924E] text-white shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-white/50",
-  secondaryBtn: "bg-white text-[#00653A] border border-[#00A859] hover:bg-[#E6F4EC] transition-colors",
-  card: "bg-white shadow-sm rounded-2xl border border-slate-200",
-  chip: "px-2 py-0.5 rounded-full text-xs font-medium",
+  header: "sticky top-0 z-40 bg-gradient-to-r from-[#00653A] via-[#00A859] to-[#00924E] text-white",
+  primaryBtn: "bg-[#00A859] hover:bg-[#00924E] text-white shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-white/50",
+  secondaryBtn: "bg-white text-[#00653A] border border-[#00A859] hover:bg-[#E6F4EC] transition-all duration-200 shadow-sm",
+  card: "bg-white shadow-lg rounded-2xl border border-slate-200/80 backdrop-blur-sm",
+  chip: "px-3 py-1 rounded-full text-xs font-medium transition-colors",
 };
 
 export const badge = (t) => {
