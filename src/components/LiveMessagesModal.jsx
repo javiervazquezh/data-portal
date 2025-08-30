@@ -1,15 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { interval } from 'rxjs'
 import { FiX } from 'react-icons/fi'
+import StreamChart from './StreamChart.jsx'
 
 export default function LiveMessagesModal({ product, onClose }) {
   const [messages, setMessages] = useState([])
   const stopRef = useRef(false)
-  const bottomRef = useRef(null)
   const [paused, setPaused] = useState(false)
-  const initialSpeed = clamp(product?.messagesPerSec || 5, 1, 20)
+  const initialSpeed = 5
   const [speed, setSpeed] = useState(initialSpeed)
-  const [selectedIndex, setSelectedIndex] = useState(null)
 
   const fields = useMemo(() => {
     // Support both record.fields and table.columns shapes
@@ -21,22 +20,20 @@ export default function LiveMessagesModal({ product, onClose }) {
   useEffect(() => {
     stopRef.current = false
     if (paused) return
-    const period = Math.max(1000 / clamp(speed, 1, 50), 50)
+  const period = Math.max(1000 / clamp(speed, 1, 10), 50)
     let cancelled = false
-    const sub = interval(period).subscribe(() => {
+  const sub = interval(period).subscribe(() => {
       if (cancelled || stopRef.current) return
       const msg = generateMessage(fields)
       setMessages((prev) => {
-        const next = [...prev, msg]
-        return next.length > 200 ? next.slice(-200) : next
+    const next = [msg, ...prev]
+    return next.length > 200 ? next.slice(0, 200) : next
       })
     })
     return () => { cancelled = true; sub.unsubscribe() }
   }, [fields, paused, speed])
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
+  // Newest messages are added to the top; keep scroll position unchanged
 
   return (
     <div
@@ -52,39 +49,46 @@ export default function LiveMessagesModal({ product, onClose }) {
           <h3 style={{ margin: 0 }}>Live messages — {product?.topic}</h3>
           <div className="spacer" />
         </div>
+        <div style={{ marginTop: 8, marginBottom: 6 }}>
+          <strong className="muted" style={{ fontSize: 12, display: 'inline-block', marginBottom: 4 }}>Throughput</strong>
+          <StreamChart value={product?.messagesPerSec} />
+        </div>
         <div className="row" style={{ gap: 8, alignItems: 'center', marginTop: 10 }}>
           <button onClick={() => setPaused((p) => !p)}>{paused ? 'Resume' : 'Pause'}</button>
           <label className="muted" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span>Speed</span>
-            <input type="range" min="1" max="50" value={speed} onChange={(e) => setSpeed(Number(e.target.value))} />
+            <input type="range" min="1" max="10" value={speed} onChange={(e) => setSpeed(Number(e.target.value))} />
             <strong style={{ fontSize: 12 }}>{speed} msg/s</strong>
           </label>
-          <button
-            type="button"
-            onClick={() => copySelected(messages, selectedIndex)}
-            disabled={selectedIndex == null}
-            style={{ background: selectedIndex == null ? 'transparent' : undefined, border: '1px solid var(--td-border)' }}
-          >
-            Copy selected row JSON
-          </button>
           <div className="spacer" />
-          <small className="muted">Click a row to select</small>
         </div>
-        <div style={{ marginTop: 12, border: '1px solid var(--td-border)', borderRadius: 8, background: '#ffffff', maxHeight: '50vh', overflow: 'auto' }}>
+    <div
+          style={{
+            marginTop: 12,
+            border: '1px solid var(--td-border)',
+            borderRadius: 8,
+            background: '#ffffff',
+            overflowY: 'auto',
+            // Fixed row height so we can size viewport to exactly 20 rows + header
+            '--lm-row-h': '28px',
+      // 15 data rows + 1 header row
+      height: 'calc(var(--lm-row-h) * 16)'
+          }}
+        >
           {fields.length > 0 ? (
             <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace', fontSize: 12 }}>
               <thead style={{ position: 'sticky', top: 0, background: '#f7faf8' }}>
-                <tr>
+                <tr style={{ height: 'var(--lm-row-h)' }}>
                   {fields.map((f) => (
-                    <th key={f.name} style={{ textAlign: 'left', padding: '6px 8px', borderBottom: '1px solid var(--td-border)', position: 'sticky', top: 0, background: '#f7faf8', zIndex: 1 }}>{f.name}</th>
+                    <th key={f.name} style={{ textAlign: 'left', padding: '4px 8px', borderBottom: '1px solid var(--td-border)', position: 'sticky', top: 0, background: '#f7faf8', zIndex: 1 }}>{f.name}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {messages.map((m, i) => (
-                  <tr key={i} onClick={() => setSelectedIndex(i)} style={{ background: selectedIndex === i ? 'var(--td-surface)' : undefined, cursor: 'pointer' }}>
+                  <tr key={i} style={{ height: 'var(--lm-row-h)' }}>
                     {fields.map((f) => (
-                      <td key={f.name} style={{ padding: '6px 8px', borderBottom: '1px solid var(--td-border)', whiteSpace: 'nowrap' }}>
+                      <td key={f.name} style={{ padding: '4px 8px', borderBottom: '1px solid var(--td-border)', whiteSpace: 'nowrap' }}>
                         {formatCell(m[f.name])}
                       </td>
                     ))}
@@ -99,7 +103,7 @@ export default function LiveMessagesModal({ product, onClose }) {
               ))}
             </div>
           )}
-          <div ref={bottomRef} />
+          {/* Newest messages appear at the top; no autoscroll to bottom */}
         </div>
       </div>
     </div>
@@ -161,13 +165,3 @@ function randId() {
 function pick(arr) { return arr[Math.floor(Math.random() * arr.length)] }
 
 function clamp(n, min, max) { return Math.min(Math.max(n, min), max) }
-
-async function copySelected(messages, idx) {
-  if (idx == null || !messages[idx]) return
-  const text = JSON.stringify(messages[idx], null, 2)
-  try {
-    await navigator.clipboard?.writeText(text)
-  } catch (e) {
-    // fallback: no-op
-  }
-}

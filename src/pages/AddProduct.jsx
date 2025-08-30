@@ -21,7 +21,7 @@ export default function AddProduct() {
       tags: form.tags ? form.tags.split(',').map((s) => s.trim()) : [],
       schema: isAnalytics
         ? { type: 'table', columns: [{ name: 'id', type: 'string' }] }
-        : { type: 'record', fields: [{ name: 'id', type: 'string' }] },
+  : { type: 'record', fields: [{ name: 'timestamp', type: 'timestamp' }, { name: 'id', type: 'string' }] },
       messagesPerSec: 50 + Math.round(Math.random() * 200),
     }
     if (isAnalytics && form.window) payload.window = form.window

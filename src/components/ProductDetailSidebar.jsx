@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import StreamChart from './StreamChart.jsx'
 import { FiUser, FiMessageCircle, FiCode, FiActivity, FiX } from 'react-icons/fi'
 import LiveMessagesModal from './LiveMessagesModal.jsx'
 
@@ -65,19 +64,15 @@ export default function ProductDetailSidebar({ product, onClose, onSubscribe }) 
         </div>
 
         {product.type === 'stream' && (
-          <div style={{ marginTop: 16 }}>
-            <strong className="muted" style={{ fontSize: 12 }}><FiActivity style={{ verticalAlign: '-2px' }} /> Throughput</strong>
-            <StreamChart value={product.messagesPerSec} />
-            <div className="row" style={{ marginTop: 8 }}>
-              <a href="#" onClick={(e) => { e.preventDefault(); setShowLive(true) }}>
-                View real-time messages
-              </a>
-            </div>
+          <div className="row" style={{ marginTop: 16 }}>
+            <a href="#" onClick={(e) => { e.preventDefault(); setShowLive(true) }}>
+              <FiActivity style={{ verticalAlign: '-2px' }} /> View real-time messages
+            </a>
           </div>
         )}
 
-        <div className="row" style={{ marginTop: 16 }}>
-          <button onClick={() => onSubscribe?.(product)}>Subscribe</button>
+        <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <button onClick={() => onSubscribe?.(product)} style={{ alignSelf: 'flex-start' }}>Subscribe</button>
           {product.type === 'stream' && (
             <div className="muted">msg/s: ~{product.messagesPerSec}</div>
           )}
