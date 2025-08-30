@@ -1,4 +1,5 @@
 import { NavLink, Route, Routes } from 'react-router-dom'
+import { FiGrid, FiCpu, FiGitBranch, FiPlusSquare } from 'react-icons/fi'
 import Products from './pages/Products.jsx'
 import StreamProcessors from './pages/StreamProcessors.jsx'
 import Lineage from './pages/Lineage.jsx'
@@ -12,10 +13,10 @@ export default function App() {
           <div className="logo">TD</div>
           <strong>Capital Markets Data Portal</strong>
           <nav className="nav">
-            <NavLink to="/" end>Products</NavLink>
-            <NavLink to="/processors">Processors</NavLink>
-            <NavLink to="/lineage">Lineage</NavLink>
-            <NavLink to="/add">Add Product</NavLink>
+            <NavLink to="/" end><FiGrid style={{ verticalAlign: '-2px' }} /> Products</NavLink>
+            <NavLink to="/processors"><FiCpu style={{ verticalAlign: '-2px' }} /> Processors</NavLink>
+            <NavLink to="/lineage"><FiGitBranch style={{ verticalAlign: '-2px' }} /> Lineage</NavLink>
+            <NavLink to="/add"><FiPlusSquare style={{ verticalAlign: '-2px' }} /> Add</NavLink>
           </nav>
         </div>
       </header>

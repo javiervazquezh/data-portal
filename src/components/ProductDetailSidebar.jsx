@@ -1,7 +1,10 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import StreamChart from './StreamChart.jsx'
+import { FiUser, FiMessageCircle, FiCode, FiActivity, FiX } from 'react-icons/fi'
+import LiveMessagesModal from './LiveMessagesModal.jsx'
 
 export default function ProductDetailSidebar({ product, onClose, onSubscribe }) {
+  const [showLive, setShowLive] = useState(false)
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') onClose?.() }
     window.addEventListener('keydown', onKey)
@@ -13,13 +16,16 @@ export default function ProductDetailSidebar({ product, onClose, onSubscribe }) 
   return (
     <div className="sidebar-overlay" onClick={onClose} role="dialog" aria-modal="true">
       <aside className="sidebar" onClick={(e) => e.stopPropagation()}>
+        <button className="sidebar-close" onClick={onClose} aria-label="Close"><FiX /></button>
         <div className="row" style={{ alignItems: 'flex-start' }}>
           <div>
             <h2 style={{ margin: 0 }}>{product.name}</h2>
-            <div className="muted" style={{ fontSize: 13 }}>Topic: {product.topic} • Owner: {product.owner}</div>
+            <div className="muted" style={{ fontSize: 12, display: 'flex', gap: 10, alignItems: 'center' }}>
+              <span><FiMessageCircle style={{ verticalAlign: '-2px' }} /> {product.topic}</span>
+              <span><FiUser style={{ verticalAlign: '-2px' }} /> {product.owner}</span>
+            </div>
           </div>
           <div className="spacer" />
-          <button onClick={onClose} aria-label="Close">Close</button>
         </div>
 
         <p style={{ marginTop: 12 }}>{product.description}</p>
@@ -33,20 +39,59 @@ export default function ProductDetailSidebar({ product, onClose, onSubscribe }) 
         </div>
 
         <div style={{ marginTop: 16 }}>
-          <strong className="muted" style={{ fontSize: 12 }}>Schema</strong>
-          <pre style={{ background: '#ffffff', border: '1px solid var(--td-border)', padding: 8, borderRadius: 8, overflow: 'auto' }}>{JSON.stringify(product.schema, null, 2)}</pre>
+          <strong className="muted" style={{ fontSize: 12 }}><FiCode style={{ verticalAlign: '-2px' }} /> Schema</strong>
+          {product.type === 'analytics' && product.schema?.type === 'table' ? (
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', background: '#ffffff', border: '1px solid var(--td-border)', borderRadius: 8 }}>
+                <thead>
+                  <tr>
+                    <th style={{ textAlign: 'left', padding: '6px 8px', borderBottom: '1px solid var(--td-border)' }}>Column</th>
+                    <th style={{ textAlign: 'left', padding: '6px 8px', borderBottom: '1px solid var(--td-border)' }}>Type</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {product.schema.columns?.map((c) => (
+                    <tr key={c.name}>
+                      <td style={{ padding: '6px 8px', borderBottom: '1px solid var(--td-border)' }}>{c.name}</td>
+                      <td style={{ padding: '6px 8px', borderBottom: '1px solid var(--td-border)' }}>{c.type}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <pre style={{ background: '#ffffff', border: '1px solid var(--td-border)', padding: 8, borderRadius: 8, overflow: 'auto' }}>{JSON.stringify(product.schema, null, 2)}</pre>
+          )}
         </div>
 
-        <div style={{ marginTop: 16 }}>
-          <strong className="muted" style={{ fontSize: 12 }}>Throughput</strong>
-          <StreamChart value={product.messagesPerSec} />
-        </div>
+        {product.type === 'stream' && (
+          <div style={{ marginTop: 16 }}>
+            <strong className="muted" style={{ fontSize: 12 }}><FiActivity style={{ verticalAlign: '-2px' }} /> Throughput</strong>
+            <StreamChart value={product.messagesPerSec} />
+            <div className="row" style={{ marginTop: 8 }}>
+              <a href="#" onClick={(e) => { e.preventDefault(); setShowLive(true) }}>
+                View real-time messages
+              </a>
+            </div>
+          </div>
+        )}
 
         <div className="row" style={{ marginTop: 16 }}>
           <button onClick={() => onSubscribe?.(product)}>Subscribe</button>
-          <div className="muted">msg/s: ~{product.messagesPerSec}</div>
+          {product.type === 'stream' && (
+            <div className="muted">msg/s: ~{product.messagesPerSec}</div>
+          )}
+          {product.type === 'stream' && product.retentionDays != null && (
+            <div className="muted">Retention: {product.retentionDays} days</div>
+          )}
+          {product.type === 'analytics' && product.window && (
+            <div className="muted">Window: {product.window}</div>
+          )}
         </div>
       </aside>
+      {showLive && product.type === 'stream' && (
+        <LiveMessagesModal product={product} onClose={() => setShowLive(false)} />
+      )}
     </div>
   )
 }

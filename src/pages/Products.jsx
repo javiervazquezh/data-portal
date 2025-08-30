@@ -6,7 +6,7 @@ import SearchBar from '../components/SearchBar.jsx'
 import useStore from '../store/useStore.js'
 
 export default function Products() {
-  const { products, subscribeToProduct } = useStore()
+  const { products, subscribeToProduct, deleteProduct } = useStore()
   const [selected, setSelected] = useState(null)
   const [q, setQ] = useState('')
 
@@ -25,7 +25,16 @@ export default function Products() {
       </div>
 
       {list.map((p) => (
-        <ProductCard key={p.id} product={p} onSubscribe={subscribeToProduct} onOpen={setSelected} />
+        <ProductCard
+          key={p.id}
+          product={p}
+          onSubscribe={subscribeToProduct}
+          onOpen={setSelected}
+          onDelete={(prod) => {
+            if (selected?.id === prod.id) setSelected(null)
+            deleteProduct(prod.id)
+          }}
+        />
       ))}
 
       <ProductDetailSidebar product={selected} onClose={() => setSelected(null)} onSubscribe={subscribeToProduct} />

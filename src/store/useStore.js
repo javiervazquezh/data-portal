@@ -10,6 +10,7 @@ const useStore = create((set, get) => ({
     })
   },
   addProduct: (payload) => set({ products: [payload, ...get().products] }),
+  deleteProduct: (id) => set({ products: get().products.filter((p) => p.id !== id) }),
 }))
 
 export default useStore
