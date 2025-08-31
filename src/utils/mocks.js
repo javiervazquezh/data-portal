@@ -68,7 +68,7 @@ export function initialProducts() {
       owner: 'cm-fx',
       description: 'Cross-currency rates with liquidity tiers and spreads.',
       tags: ['fx', 'fxspot', 'rates'],
-  schema: { type: 'record', fields: [{ name: 'timestamp', type: 'timestamp' }, { name: 'ccyPair', type: 'string' }, { name: 'bid', type: 'double' }, { name: 'ask', type: 'double' }, { name: 'liquidity', type: 'string' }] },
+  schema: { type: 'record', fields: [{ name: 'timestamp', type: 'timestamp' }, { name: 'ccyPair', type: 'string' }, { name: 'bid', type: 'double' }, { name: 'ask', type: 'double' }, { name: 'liquidity', type: 'double' }] },
   messagesPerSec: 340,
   retentionDays: 3,
     },

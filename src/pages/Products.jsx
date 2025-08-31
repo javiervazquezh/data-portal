@@ -11,17 +11,22 @@ export default function Products() {
   const [q, setQ] = useState('')
 
   const fuse = useMemo(() => new Fuse(products, { threshold: 0.35, keys: ['name', 'topic', 'owner', 'tags'] }), [products])
-  const list = q ? fuse.search(q).map((r) => r.item) : products
+  const owners = useMemo(() => Array.from(new Set(products.map((p) => p.owner))).sort(), [products])
+  const normalized = q.trim().toLowerCase()
+  const matchedOwner = useMemo(() => owners.find((o) => o.toLowerCase() === normalized), [owners, normalized])
+  const list = matchedOwner
+    ? products.filter((p) => p.owner.toLowerCase() === normalized)
+    : (q ? fuse.search(q).map((r) => r.item) : products)
 
   return (
     <div className="grid">
       <div className="card" style={{ gridColumn: '1 / -1' }}>
-        <div className="row">
+  <div className="row" style={{ gap: 8, alignItems: 'center' }}>
           <h2 style={{ margin: 0 }}>Data Products</h2>
           <div className="spacer" />
           <SearchBar value={q} onChange={setQ} />
         </div>
-        <div className="muted" style={{ marginTop: 8, fontSize: 13 }}>Streaming via Confluent Cloud (simulated)</div>
+  {/* Removed simulated streaming subtitle */}
       </div>
 
       {list.map((p) => (
@@ -30,10 +35,6 @@ export default function Products() {
           product={p}
           onSubscribe={subscribeToProduct}
           onOpen={setSelected}
-          onDelete={(prod) => {
-            if (selected?.id === prod.id) setSelected(null)
-            deleteProduct(prod.id)
-          }}
         />
       ))}
 
