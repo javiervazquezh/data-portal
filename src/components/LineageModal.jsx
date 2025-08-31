@@ -9,7 +9,14 @@ export default function LineageModal({ onClose, nodes = [], edges = [] }) {
         <button className="modal-close icon" onClick={onClose} aria-label="Close"><FiX /></button>
         <h3 style={{ marginTop: 0, marginBottom: 10 }}>Lineage</h3>
         <div style={{ width: '100%', height: 520 }}>
-          <ReactFlow nodes={nodes} edges={edges} fitView>
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            fitView
+            fitViewOptions={{ padding: 0.45 }}
+            minZoom={0.2}
+            defaultViewport={{ x: 0, y: 0, zoom: 0.85 }}
+          >
             <Background color="#1f2a2d" gap={16} />
             <MiniMap pannable zoomable />
             <Controls />

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { FiX, FiGitBranch } from 'react-icons/fi'
 import useStore from '../store/useStore.js'
 import LineageModal from './LineageModal.jsx'
+import ProductMultiSelect from './ProductMultiSelect.jsx'
 
 export default function ApplicationDetailSidebar({ app, onClose }) {
   const products = useStore((s) => s.products)
@@ -43,18 +44,11 @@ export default function ApplicationDetailSidebar({ app, onClose }) {
             <div className="muted">Description</div>
             <textarea rows={3} value={local.description || ''} onChange={(e) => setLocal({ ...local, description: e.target.value })} />
           </label>
-          <label style={{ gridColumn: '1 / -1' }}>
+          <div style={{ gridColumn: '1 / -1' }}>
             <div className="muted">Subscriptions</div>
-            <select multiple value={selectedPids} onChange={(e) => {
-              const next = Array.from(e.target.selectedOptions).map(o => o.value)
-              setSelectedPids(next)
-            }}>
-              {products.map((p) => (
-                <option key={p.id} value={p.id}>{p.name}</option>
-              ))}
-            </select>
+            <ProductMultiSelect products={products} value={selectedPids} onChange={setSelectedPids} />
             <small className="muted">Manage product subscriptions to build lineage.</small>
-          </label>
+          </div>
           <div style={{ gridColumn: '1 / -1', marginTop: 4 }}>
             <a href="#" onClick={(e) => { e.preventDefault(); setShowLineage(true) }}>
               <FiGitBranch style={{ verticalAlign: '-2px' }} /> View lineage
@@ -88,7 +82,7 @@ function buildAppNodes(app, products, subs) {
   const prodMap = Object.fromEntries(products.map((p) => [p.id, p]))
   subs.filter((e) => e.from.type === 'application' && e.from.id === app.id).forEach((e, idx) => {
     const p = prodMap[e.to.id]
-    if (p) nodes.push({ id: `product:${p.id}`, position: { x: 120, y: 80 + idx * 80 }, data: { label: p.name } })
+    if (p) nodes.push({ id: `product:${p.id}`, position: { x: 120, y: 80 + idx * 80 }, data: { label: p.name }, style: styleForProduct(p) })
   })
   return nodes
 }
@@ -99,4 +93,24 @@ function buildAppEdges(app, subs) {
     edges.push({ id: `e-${idx}`, source: `product:${e.to.id}`, target: `application:${app.id}`, animated: true, style: { stroke: '#10a14b' } })
   })
   return edges
+}
+
+function styleForProduct(p) {
+  if (!p) return undefined
+  if (p.type === 'analytics') {
+    return {
+      background: 'rgba(0,102,204,0.12)',
+      border: '1px solid rgba(0,102,204,0.35)',
+      color: '#0b3d91',
+      borderRadius: 8,
+      padding: 6,
+    }
+  }
+  return {
+    background: 'rgba(0,177,79,0.15)',
+    border: '1px solid rgba(0,177,79,0.35)',
+    color: 'var(--td-deep)',
+    borderRadius: 8,
+    padding: 6,
+  }
 }

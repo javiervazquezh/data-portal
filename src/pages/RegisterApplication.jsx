@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FiSave, FiUser, FiCpu, FiTag, FiFileText } from 'react-icons/fi'
 import useStore from '../store/useStore.js'
+import ProductMultiSelect from '../components/ProductMultiSelect.jsx'
 
 export default function RegisterApplication() {
   const addApplication = useStore((s) => s.addApplication)
@@ -40,15 +41,7 @@ export default function RegisterApplication() {
         </label>
         <label style={{ gridColumn: '1 / -1' }}>
           <div className="muted">Subscribe to data products</div>
-          <select multiple value={form.subscribesTo} onChange={(e) => {
-            const opts = Array.from(e.target.selectedOptions).map(o => o.value)
-            setForm({ ...form, subscribesTo: opts })
-          }}>
-            {products.map((p) => (
-              <option key={p.id} value={p.id}>{p.name}</option>
-            ))}
-          </select>
-          <small className="muted">Hold Cmd/Ctrl to select multiple data products. This will create subscriptions for lineage.</small>
+          <ProductMultiSelect products={products} value={form.subscribesTo} onChange={(ids) => setForm({ ...form, subscribesTo: ids })} />
         </label>
         <label>
           <div className="muted"><FiUser style={{ verticalAlign: '-2px' }} /> Owner</div>

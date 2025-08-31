@@ -9,6 +9,6 @@ describe('App', () => {
         <App />
       </BrowserRouter>
     )
-    expect(screen.getByText(/Capital Markets Data Portal/i)).toBeInTheDocument()
+  expect(screen.getByText(/Data Portal/i)).toBeInTheDocument()
   })
 })

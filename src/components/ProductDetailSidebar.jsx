@@ -131,17 +131,17 @@ function buildNodes(targetProduct, products, apps, subs) {
   const byId = new Map()
   function push(node) { if (!byId.has(node.id)) { byId.set(node.id, true); nodes.push(node) } }
   // Center target
-  push({ id: `product:${targetProduct.id}`, position: { x: 300, y: 180 }, data: { label: targetProduct.name } })
+  push({ id: `product:${targetProduct.id}`, position: { x: 300, y: 180 }, data: { label: targetProduct.name }, style: styleForProduct(targetProduct) })
   // Upstream: who this product subscribes to
   subs.filter((e) => e.from.type === 'product' && e.from.id === targetProduct.id).forEach((e, idx) => {
     const src = prodMap[e.to.id]
-    if (src) push({ id: `product:${src.id}`, position: { x: 100, y: 80 + idx * 80 }, data: { label: src.name } })
+    if (src) push({ id: `product:${src.id}`, position: { x: 100, y: 80 + idx * 80 }, data: { label: src.name }, style: styleForProduct(src) })
   })
   // Downstream: who subscribes to this product
   subs.filter((e) => e.to.id === targetProduct.id).forEach((e, idx) => {
     if (e.from.type === 'product') {
       const dst = prodMap[e.from.id]
-      if (dst) push({ id: `product:${dst.id}`, position: { x: 500, y: 80 + idx * 80 }, data: { label: dst.name } })
+      if (dst) push({ id: `product:${dst.id}`, position: { x: 500, y: 80 + idx * 80 }, data: { label: dst.name }, style: styleForProduct(dst) })
     } else if (e.from.type === 'application') {
       const app = apps.find((a) => a.id === e.from.id)
       if (app) push({ id: `application:${app.id}`, position: { x: 520, y: 80 + idx * 80 }, data: { label: `App: ${app.name}` } })
@@ -161,4 +161,25 @@ function buildEdges(targetProduct, subs) {
     edges.push({ id: `down-${i}`, source: `product:${targetProduct.id}`, target: `${e.from.type}:${e.from.id}`, animated: true, style: { stroke: '#10a14b' } })
   })
   return edges
+}
+
+function styleForProduct(p) {
+  if (!p) return undefined
+  if (p.type === 'analytics') {
+    return {
+      background: 'rgba(0,102,204,0.12)',
+      border: '1px solid rgba(0,102,204,0.35)',
+      color: '#0b3d91',
+      borderRadius: 8,
+      padding: 6,
+    }
+  }
+  // stream default
+  return {
+    background: 'rgba(0,177,79,0.15)',
+    border: '1px solid rgba(0,177,79,0.35)',
+    color: 'var(--td-deep)',
+    borderRadius: 8,
+    padding: 6,
+  }
 }
