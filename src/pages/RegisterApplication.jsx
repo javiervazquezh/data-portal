@@ -1,0 +1,49 @@
+import { useState } from 'react'
+import { FiSave, FiUser, FiCpu, FiTag, FiFileText } from 'react-icons/fi'
+
+export default function RegisterApplication() {
+  const [form, setForm] = useState({ name: '', team: '', owner: '', malcode: 'TRNPY', description: '', tags: '' })
+  const onSubmit = (e) => {
+    e.preventDefault()
+    // Demo-only: just reset the form
+    setForm({ name: '', team: '', owner: '', malcode: 'TRNPY', description: '', tags: '' })
+  }
+  return (
+    <div className="card" style={{ maxWidth: 960, marginInline: 'auto' }}>
+      <h2 style={{ marginTop: 0 }}>Register Application</h2>
+      <div className="muted" style={{ marginTop: 6, fontSize: 13 }}>
+        Register a consuming application with basic ownership and the topics it uses.
+      </div>
+      <form onSubmit={onSubmit} className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 16 }}>
+        <label>
+          <div className="muted"><FiCpu style={{ verticalAlign: '-2px' }} /> App Name</div>
+          <input placeholder="e.g., risk-aggregator" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+        </label>
+        <label>
+          <div className="muted"><FiUser style={{ verticalAlign: '-2px' }} /> Owner</div>
+          <input placeholder="e.g., cm-risk" value={form.owner} onChange={(e) => setForm({ ...form, owner: e.target.value })} />
+        </label>
+        <label>
+          <div className="muted"><FiTag style={{ verticalAlign: '-2px' }} /> Team</div>
+          <input placeholder="e.g., risk-platform" value={form.team} onChange={(e) => setForm({ ...form, team: e.target.value })} />
+        </label>
+        <label>
+          <div className="muted">Malcode</div>
+          <select value={form.malcode} onChange={(e) => setForm({ ...form, malcode: e.target.value })}>
+            <option value="TRNPY">TRNPY</option>
+            <option value="RCAPS">RCAPS</option>
+            <option value="GED">GED</option>
+            <option value="TDVDS">TDVDS</option>
+          </select>
+        </label>
+        <label style={{ gridColumn: '1 / -1' }}>
+          <div className="muted"><FiFileText style={{ verticalAlign: '-2px' }} /> Description</div>
+          <textarea rows={4} placeholder="What does this app do?" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+        </label>
+        <div style={{ gridColumn: '1 / -1', display: 'flex', gap: 8 }}>
+          <button type="submit"><FiSave style={{ verticalAlign: '-2px' }} /> Register</button>
+        </div>
+      </form>
+    </div>
+  )
+}

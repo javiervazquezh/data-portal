@@ -15,7 +15,6 @@ export default function AddProduct() {
       id: crypto.randomUUID(),
       type: form.type,
       name: form.name || 'Untitled',
-      topic: form.topic || 'topic.new',
       owner: form.owner || 'cm-data',
       description: form.description || 'New product',
       tags: form.tags ? form.tags.split(',').map((s) => s.trim()) : [],
@@ -24,6 +23,7 @@ export default function AddProduct() {
   : { type: 'record', fields: [{ name: 'timestamp', type: 'timestamp' }, { name: 'id', type: 'string' }] },
       messagesPerSec: 50 + Math.round(Math.random() * 200),
     }
+    if (!isAnalytics) payload.topic = form.topic || 'topic.new'
     if (isAnalytics && form.window) payload.window = form.window
   if (form.type === 'stream' && form.retentionDays) payload.retentionDays = Number(form.retentionDays)
     addProduct(payload)
@@ -61,11 +61,13 @@ export default function AddProduct() {
           <div className="muted"><FiFileText style={{ verticalAlign: '-2px' }} /> Name</div>
           <input placeholder="e.g., Trades (Enriched)" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
         </label>
-        <label>
-          <div className="muted"><FiMessageCircle style={{ verticalAlign: '-2px' }} /> Topic</div>
-          <input placeholder="e.g., trades.enriched" value={form.topic} onChange={(e) => setForm({ ...form, topic: e.target.value })} required />
-          <small className="muted">Kafka topic name in Confluent Cloud.</small>
-        </label>
+        {form.type === 'stream' && (
+          <label>
+            <div className="muted"><FiMessageCircle style={{ verticalAlign: '-2px' }} /> Topic</div>
+            <input placeholder="e.g., trades.enriched" value={form.topic} onChange={(e) => setForm({ ...form, topic: e.target.value })} required />
+            <small className="muted">Kafka topic name in Confluent Cloud.</small>
+          </label>
+        )}
         <label>
           <div className="muted"><FiUser style={{ verticalAlign: '-2px' }} /> Owner</div>
           <input placeholder="e.g., cm-trading" value={form.owner} onChange={(e) => setForm({ ...form, owner: e.target.value })} />

@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
-import { FiUser, FiMessageCircle, FiCode, FiActivity, FiX } from 'react-icons/fi'
+import { FiUser, FiMessageCircle, FiCode, FiActivity, FiGitBranch, FiX } from 'react-icons/fi'
 import LiveMessagesModal from './LiveMessagesModal.jsx'
+import LineageModal from './LineageModal.jsx'
 
 export default function ProductDetailSidebar({ product, onClose, onSubscribe }) {
   const [showLive, setShowLive] = useState(false)
+  const [showLineage, setShowLineage] = useState(false)
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') onClose?.() }
     window.addEventListener('keydown', onKey)
@@ -20,7 +22,9 @@ export default function ProductDetailSidebar({ product, onClose, onSubscribe }) 
           <div>
             <h2 style={{ margin: 0 }}>{product.name}</h2>
             <div className="muted" style={{ fontSize: 12, display: 'flex', gap: 10, alignItems: 'center' }}>
-              <span><FiMessageCircle style={{ verticalAlign: '-2px' }} /> {product.topic}</span>
+              {product.type === 'stream' && product.topic && (
+                <span><FiMessageCircle style={{ verticalAlign: '-2px' }} /> {product.topic}</span>
+              )}
               <span><FiUser style={{ verticalAlign: '-2px' }} /> {product.owner}</span>
             </div>
           </div>
@@ -70,6 +74,11 @@ export default function ProductDetailSidebar({ product, onClose, onSubscribe }) 
             </a>
           </div>
         )}
+        <div className="row" style={{ marginTop: 8 }}>
+          <a href="#" onClick={(e) => { e.preventDefault(); setShowLineage(true) }}>
+            <FiGitBranch style={{ verticalAlign: '-2px' }} /> View lineage
+          </a>
+        </div>
 
         <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
           <button onClick={() => onSubscribe?.(product)} style={{ alignSelf: 'flex-start' }}>Subscribe</button>
@@ -86,6 +95,9 @@ export default function ProductDetailSidebar({ product, onClose, onSubscribe }) 
       </aside>
       {showLive && product.type === 'stream' && (
         <LiveMessagesModal product={product} onClose={() => setShowLive(false)} />
+      )}
+      {showLineage && (
+        <LineageModal onClose={() => setShowLineage(false)} />
       )}
     </div>
   )

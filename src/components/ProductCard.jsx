@@ -17,7 +17,9 @@ export default function ProductCard({ product, onSubscribe, onOpen }) {
             }}>
               {type === 'analytics' ? (<><FiBarChart2 style={{ verticalAlign: '-2px' }} /> Analytics</>) : (<><FiActivity style={{ verticalAlign: '-2px' }} /> Stream</>)}
             </span>
-            <span><FiMessageCircle style={{ verticalAlign: '-2px' }} /> {topic}</span>
+            {type === 'stream' && topic && (
+              <span><FiMessageCircle style={{ verticalAlign: '-2px' }} /> {topic}</span>
+            )}
             <span><FiUser style={{ verticalAlign: '-2px' }} /> {owner}</span>
             {type === 'analytics' ? (
               <span className="muted">Window: {windowSize || '—'}</span>
