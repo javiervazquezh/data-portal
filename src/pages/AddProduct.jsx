@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import ProductMultiSelect from '../components/ProductMultiSelect.jsx'
 import { useNavigate } from 'react-router-dom'
 import { FiChevronLeft, FiType, FiMessageCircle, FiUser, FiTag, FiFileText, FiClock, FiSave } from 'react-icons/fi'
 import useStore from '../store/useStore.js'
@@ -8,31 +9,44 @@ export default function AddProduct() {
   const subscribe = useStore((s) => s.subscribe)
   const products = useStore((s) => s.products)
   const navigate = useNavigate()
-  const [form, setForm] = useState({ name: '', topic: '', owner: '', description: '', tags: '', type: 'stream', retentionDays: '', derivesFrom: [] })
+  const [form, setForm] = useState({ name: '', topic: '', owner: '', description: '', tags: '', type: 'stream', retentionDays: '', derivesFrom: [], subscribesTo: [], schema: '', malcode: 'TRNPY' })
 
   const onSubmit = (e) => {
-    e.preventDefault()
-  const isAnalytics = form.type === 'analytics'
-  const payload = {
+    e.preventDefault();
+    const isAnalytics = form.type === 'analytics';
+    let schemaValue = form.schema;
+    let parsedSchema = null;
+    try {
+      parsedSchema = schemaValue ? JSON.parse(schemaValue) : (isAnalytics
+        ? { type: 'table', columns: [{ name: 'id', type: 'string' }] }
+        : { type: 'record', fields: [{ name: 'timestamp', type: 'timestamp' }, { name: 'id', type: 'string' }] });
+    } catch {
+      parsedSchema = schemaValue; // fallback to raw string if not valid JSON
+    }
+    const payload = {
       id: crypto.randomUUID(),
       type: form.type,
       name: form.name || 'Untitled',
       owner: form.owner || 'cm-data',
       description: form.description || 'New product',
       tags: form.tags ? form.tags.split(',').map((s) => s.trim()) : [],
-      schema: isAnalytics
-        ? { type: 'table', columns: [{ name: 'id', type: 'string' }] }
-  : { type: 'record', fields: [{ name: 'timestamp', type: 'timestamp' }, { name: 'id', type: 'string' }] },
+      schema: parsedSchema,
+      malcode: form.malcode,
       messagesPerSec: 50 + Math.round(Math.random() * 200),
-    }
-    if (!isAnalytics) payload.topic = form.topic || 'topic.new'
-  if (form.type === 'stream' && form.retentionDays) payload.retentionDays = Number(form.retentionDays)
-    addProduct(payload)
+    };
+    if (!isAnalytics) payload.topic = form.topic || 'topic.new';
+    if (form.type === 'stream' && form.retentionDays) payload.retentionDays = Number(form.retentionDays);
+    addProduct(payload);
     // Create lineage edges for derived-from selections
     for (const pid of form.derivesFrom || []) {
       subscribe({ fromType: 'product', fromId: payload.id, toProductId: pid })
     }
-  setForm({ name: '', topic: '', owner: '', description: '', tags: '', type: 'stream', retentionDays: '', derivesFrom: [] })
+    // Create subscription edges for selected products
+    for (const pid of form.subscribesTo || []) {
+      subscribe({ fromType: 'product', fromId: payload.id, toProductId: pid })
+    }
+    setForm({ name: '', topic: '', owner: '', description: '', tags: '', type: 'stream', retentionDays: '', derivesFrom: [], subscribesTo: [], schema: '', malcode: 'TRNPY' })
+    navigate('/catalog');
   }
 
   return (
@@ -77,26 +91,42 @@ export default function AddProduct() {
           <div className="muted"><FiUser style={{ verticalAlign: '-2px' }} /> Owner</div>
           <input placeholder="e.g., cm-trading" value={form.owner} onChange={(e) => setForm({ ...form, owner: e.target.value })} />
         </label>
+        <label>
+          <div className="muted">Malcode</div>
+          <select value={form.malcode} onChange={e => setForm({ ...form, malcode: e.target.value })}>
+            <option value="TRNPY">TRNPY</option>
+            <option value="RCAPS">RCAPS</option>
+            <option value="GED">GED</option>
+            <option value="TDVDS">TDVDS</option>
+          </select>
+        </label>
   {/* Analytics products represent historical data; no window field */}
         {form.type === 'stream' && (
-          <label>
-            <div className="muted"><FiClock style={{ verticalAlign: '-2px' }} /> Retention (days)</div>
-            <input type="number" min="1" placeholder="e.g., 7" value={form.retentionDays} onChange={(e) => setForm({ ...form, retentionDays: e.target.value })} />
-            <small className="muted">Kafka topic retention policy in days.</small>
-          </label>
+          <div style={{ display: 'flex', gap: 16 }}>
+            <label style={{ flex: 1 }}>
+              <div className="muted"><FiClock style={{ verticalAlign: '-2px' }} /> Retention (days)</div>
+              <input type="number" min="1" placeholder="e.g., 7" value={form.retentionDays} onChange={(e) => setForm({ ...form, retentionDays: e.target.value })} />
+              <small className="muted">Kafka topic retention policy in days.</small>
+            </label>
+          </div>
         )}
-        {/* For derived data products, select source products to establish lineage */}
+        {/* Subscribe to data products combobox */}
         <label style={{ gridColumn: '1 / -1' }}>
-          <div className="muted">Derives from</div>
-          <select multiple value={form.derivesFrom} onChange={(e) => {
-            const opts = Array.from(e.target.selectedOptions).map(o => o.value)
-            setForm({ ...form, derivesFrom: opts })
-          }}>
-            {products.map((p) => (
-              <option key={p.id} value={p.id}>{p.name}</option>
-            ))}
-          </select>
-          <small className="muted">Choose existing products this one is derived from. This builds lineage via subscriptions.</small>
+          <div className="muted">Subscribe to data products</div>
+          <ProductMultiSelect products={products} value={form.subscribesTo} onChange={(ids) => setForm({ ...form, subscribesTo: ids })} />
+          <small className="muted">Select products this data product should subscribe to.</small>
+        </label>
+        {/* Schema field for data product */}
+        <label style={{ gridColumn: '1 / -1' }}>
+          <div className="muted">Schema (JSON)</div>
+          <textarea
+            placeholder='{"type": "record", "fields": [{"name": "timestamp", "type": "timestamp"}, {"name": "id", "type": "string"}]}'
+            value={form.schema}
+            onChange={e => setForm({ ...form, schema: e.target.value })}
+            style={{ minHeight: 120, fontFamily: 'monospace', fontSize: 14, resize: 'vertical' }}
+            rows={8}
+          />
+          <small className="muted">Paste or edit the schema in JSON format for this data product.</small>
         </label>
         <label>
           <div className="muted"><FiTag style={{ verticalAlign: '-2px' }} /> Tags</div>
@@ -108,7 +138,7 @@ export default function AddProduct() {
         </label>
         <div style={{ gridColumn: '1 / -1', display: 'flex', gap: 8 }}>
           <button type="button" onClick={() => navigate(-1)} style={{ background: 'transparent', border: '1px solid var(--td-border)' }}>Cancel</button>
-          <button type="submit"><FiSave style={{ verticalAlign: '-2px' }} /> Add Product</button>
+          <button type="submit"><FiSave style={{ verticalAlign: '-2px' }} /> Add Data Product</button>
         </div>
       </form>
     </div>
