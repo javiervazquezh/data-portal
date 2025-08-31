@@ -14,6 +14,9 @@ const useStore = create((set, get) => ({
   },
   // General subscription: from entity (app|product) subscribes to a product
   subscribe: ({ fromType, fromId, toProductId }) => {
+  // Enforce: data products can only subscribe to other data products
+  if (fromType === 'product' && !get().products.find((p) => p.id === fromId)) return
+  if (!get().products.find((p) => p.id === toProductId)) return
     const edge = { from: { type: fromType, id: fromId }, to: { type: 'product', id: toProductId } }
     const exists = (get().subscriptions || []).some((e) => e.from.type === edge.from.type && e.from.id === edge.from.id && e.to.id === edge.to.id)
     if (!exists) set({ subscriptions: [...(get().subscriptions || []), edge] })

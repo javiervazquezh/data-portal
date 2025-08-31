@@ -11,8 +11,14 @@ export default function ProductDetailSidebar({ product, onClose, onSubscribe }) 
   const apps = useStore((s) => s.applications)
   const products = useStore((s) => s.products)
   const subs = useStore((s) => s.subscriptions)
-  const [subscriber, setSubscriber] = useState({ type: 'application', id: '' })
-  useEffect(() => { if (apps?.length && !subscriber.id) setSubscriber({ type: 'application', id: apps[0]?.id }) }, [apps])
+  const [subscriber, setSubscriber] = useState({ type: 'product', id: '' })
+  // Default subscriber to first other product to ensure products only subscribe to products
+  useEffect(() => {
+    if (!subscriber.id && products?.length) {
+      const firstOther = products.find((p) => p.id !== product?.id)
+      if (firstOther) setSubscriber({ type: 'product', id: firstOther.id })
+    }
+  }, [products, product?.id])
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') onClose?.() }
     window.addEventListener('keydown', onKey)
@@ -96,18 +102,15 @@ export default function ProductDetailSidebar({ product, onClose, onSubscribe }) 
           )}
           <div style={{ height: 1, background: 'var(--td-border)', margin: '8px 0' }} />
           <div className="row" style={{ gap: 8, alignItems: 'center' }}>
-            <select value={`${subscriber.type}:${subscriber.id}`} onChange={(e) => {
-              const [t, id] = e.target.value.split(':')
-              setSubscriber({ type: t, id })
+            <select value={`product:${subscriber.id}`} onChange={(e) => {
+              const id = e.target.value.split(':')[1]
+              setSubscriber({ type: 'product', id })
             }}>
-              {apps?.map((a) => (
-                <option key={`app:${a.id}`} value={`application:${a.id}`}>App: {a.name}</option>
-              ))}
               {products?.filter((p) => p.id !== product.id).map((p) => (
                 <option key={`prod:${p.id}`} value={`product:${p.id}`}>Product: {p.name}</option>
               ))}
             </select>
-            <button onClick={() => subscriber.id && subscribe({ fromType: subscriber.type, fromId: subscriber.id, toProductId: product.id })}>Subscribe</button>
+            <button onClick={() => subscriber.id && subscribe({ fromType: 'product', fromId: subscriber.id, toProductId: product.id })}>Subscribe</button>
           </div>
           <div className="muted" style={{ fontSize: 12 }}>
             Subscribers: {subs.filter((e) => e.to.id === product.id).length}
@@ -144,7 +147,7 @@ function buildNodes(targetProduct, products, apps, subs) {
       if (dst) push({ id: `product:${dst.id}`, position: { x: 500, y: 80 + idx * 80 }, data: { label: dst.name }, style: styleForProduct(dst) })
     } else if (e.from.type === 'application') {
       const app = apps.find((a) => a.id === e.from.id)
-      if (app) push({ id: `application:${app.id}`, position: { x: 520, y: 80 + idx * 80 }, data: { label: `App: ${app.name}` } })
+      if (app) push({ id: `application:${app.id}`, position: { x: 520, y: 80 + idx * 80 }, data: { label: `App: ${app.name}` }, style: styleForApplication() })
     }
   })
   return nodes
@@ -179,6 +182,17 @@ function styleForProduct(p) {
     background: 'rgba(0,177,79,0.15)',
     border: '1px solid rgba(0,177,79,0.35)',
     color: 'var(--td-deep)',
+    borderRadius: 8,
+    padding: 6,
+  }
+}
+
+function styleForApplication() {
+  // Distinct application color (purple hue)
+  return {
+    background: 'rgba(128, 0, 128, 0.10)',
+    border: '1px solid rgba(128, 0, 128, 0.35)',
+    color: '#4b0082',
     borderRadius: 8,
     padding: 6,
   }

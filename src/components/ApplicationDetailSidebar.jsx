@@ -78,7 +78,7 @@ export default function ApplicationDetailSidebar({ app, onClose }) {
 }
 
 function buildAppNodes(app, products, subs) {
-  const nodes = [{ id: `application:${app.id}`, position: { x: 300, y: 180 }, data: { label: `App: ${app.name}` } }]
+  const nodes = [{ id: `application:${app.id}`, position: { x: 300, y: 180 }, data: { label: `App: ${app.name}` }, style: styleForApplication() }]
   const prodMap = Object.fromEntries(products.map((p) => [p.id, p]))
   subs.filter((e) => e.from.type === 'application' && e.from.id === app.id).forEach((e, idx) => {
     const p = prodMap[e.to.id]
@@ -110,6 +110,17 @@ function styleForProduct(p) {
     background: 'rgba(0,177,79,0.15)',
     border: '1px solid rgba(0,177,79,0.35)',
     color: 'var(--td-deep)',
+    borderRadius: 8,
+    padding: 6,
+  }
+}
+
+function styleForApplication() {
+  // Distinct application color (purple hue)
+  return {
+    background: 'rgba(128, 0, 128, 0.10)',
+    border: '1px solid rgba(128, 0, 128, 0.35)',
+    color: '#4b0082',
     borderRadius: 8,
     padding: 6,
   }

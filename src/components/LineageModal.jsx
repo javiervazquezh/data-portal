@@ -15,7 +15,11 @@ export default function LineageModal({ onClose, nodes = [], edges = [] }) {
             fitView
             fitViewOptions={{ padding: 0.45 }}
             minZoom={0.2}
-            defaultViewport={{ x: 0, y: 0, zoom: 0.85 }}
+            onInit={(instance) => {
+              // Decrease the initial zoom by 30% after fitView has positioned the graph
+              const current = typeof instance.getZoom === 'function' ? instance.getZoom() : 1
+              if (typeof instance.zoomTo === 'function') instance.zoomTo(current * 0.7)
+            }}
           >
             <Background color="#1f2a2d" gap={16} />
             <MiniMap pannable zoomable />
