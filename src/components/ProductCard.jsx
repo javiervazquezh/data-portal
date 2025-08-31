@@ -1,5 +1,5 @@
 import { FiUser, FiMessageCircle, FiActivity, FiBarChart2 } from 'react-icons/fi'
-export default function ProductCard({ product, onSubscribe, onOpen }) {
+export default function ProductCard({ product, onOpen }) {
   const { name, topic, owner, description, tags, type, window: windowSize, messagesPerSec, retentionDays } = product
   return (
     <div className="card" role="button" tabIndex={0} onClick={() => onOpen?.(product)} onKeyDown={(e) => e.key === 'Enter' && onOpen?.(product)} aria-label={`Product ${name}`}>
@@ -27,11 +27,7 @@ export default function ProductCard({ product, onSubscribe, onOpen }) {
               <span className="muted">Retention: {retentionDays != null ? `${retentionDays}d` : '—'}</span>
             )}
           </div>
-        </div>
-        <div className="spacer" />
-        <div className="row" style={{ gap: 8 }}>
-          <button className="btn btn-sm btn-outline" onClick={(e) => { e.stopPropagation(); onSubscribe?.(product) }}>Subscribe</button>
-        </div>
+  </div>
       </div>
       <p style={{ marginTop: 8 }}>{description}</p>
       <div className="row" style={{ flexWrap: 'wrap' }}>

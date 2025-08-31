@@ -1,12 +1,25 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { FiSave, FiUser, FiCpu, FiTag, FiFileText } from 'react-icons/fi'
+import useStore from '../store/useStore.js'
 
 export default function RegisterApplication() {
-  const [form, setForm] = useState({ name: '', team: '', owner: '', malcode: 'TRNPY', description: '', tags: '' })
+  const addApplication = useStore((s) => s.addApplication)
+  const navigate = useNavigate()
+  const [form, setForm] = useState({ name: '', team: '', owner: '', malcode: 'TRNPY', description: '' })
   const onSubmit = (e) => {
     e.preventDefault()
-    // Demo-only: just reset the form
-    setForm({ name: '', team: '', owner: '', malcode: 'TRNPY', description: '', tags: '' })
+    const payload = {
+      id: crypto.randomUUID(),
+      name: form.name || 'unnamed-app',
+      team: form.team || '',
+      owner: form.owner || '',
+      malcode: form.malcode || 'TRNPY',
+      description: form.description || '',
+      createdAt: new Date().toISOString(),
+    }
+    addApplication(payload)
+    navigate('/my-apps')
   }
   return (
     <div className="card" style={{ maxWidth: 960, marginInline: 'auto' }}>
@@ -40,7 +53,7 @@ export default function RegisterApplication() {
           <div className="muted"><FiFileText style={{ verticalAlign: '-2px' }} /> Description</div>
           <textarea rows={4} placeholder="What does this app do?" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
         </label>
-        <div style={{ gridColumn: '1 / -1', display: 'flex', gap: 8 }}>
+  <div style={{ gridColumn: '1 / -1', display: 'flex', gap: 8 }}>
           <button type="submit"><FiSave style={{ verticalAlign: '-2px' }} /> Register</button>
         </div>
       </form>

@@ -3,6 +3,7 @@ import { initialProducts } from '../utils/mocks.js'
 
 const useStore = create((set, get) => ({
   products: initialProducts(),
+  applications: [],
   subscribeToProduct: (product) => {
     // Simulated subscription: bump its throughput randomly
     set({
@@ -11,6 +12,7 @@ const useStore = create((set, get) => ({
   },
   addProduct: (payload) => set({ products: [payload, ...get().products] }),
   deleteProduct: (id) => set({ products: get().products.filter((p) => p.id !== id) }),
+  addApplication: (payload) => set({ applications: [payload, ...(get().applications || [])] }),
 }))
 
 export default useStore
