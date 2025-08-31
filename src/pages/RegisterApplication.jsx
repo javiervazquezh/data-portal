@@ -5,8 +5,10 @@ import useStore from '../store/useStore.js'
 
 export default function RegisterApplication() {
   const addApplication = useStore((s) => s.addApplication)
+  const subscribe = useStore((s) => s.subscribe)
+  const products = useStore((s) => s.products)
   const navigate = useNavigate()
-  const [form, setForm] = useState({ name: '', team: '', owner: '', malcode: 'TRNPY', description: '' })
+  const [form, setForm] = useState({ name: '', team: '', owner: '', malcode: 'TRNPY', description: '', subscribesTo: [] })
   const onSubmit = (e) => {
     e.preventDefault()
     const payload = {
@@ -19,6 +21,10 @@ export default function RegisterApplication() {
       createdAt: new Date().toISOString(),
     }
     addApplication(payload)
+    // Build subscriptions
+    for (const pid of form.subscribesTo || []) {
+      subscribe({ fromType: 'application', fromId: payload.id, toProductId: pid })
+    }
     navigate('/my-apps')
   }
   return (
@@ -31,6 +37,18 @@ export default function RegisterApplication() {
         <label>
           <div className="muted"><FiCpu style={{ verticalAlign: '-2px' }} /> App Name</div>
           <input placeholder="e.g., risk-aggregator" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+        </label>
+        <label style={{ gridColumn: '1 / -1' }}>
+          <div className="muted">Subscribe to data products</div>
+          <select multiple value={form.subscribesTo} onChange={(e) => {
+            const opts = Array.from(e.target.selectedOptions).map(o => o.value)
+            setForm({ ...form, subscribesTo: opts })
+          }}>
+            {products.map((p) => (
+              <option key={p.id} value={p.id}>{p.name}</option>
+            ))}
+          </select>
+          <small className="muted">Hold Cmd/Ctrl to select multiple data products. This will create subscriptions for lineage.</small>
         </label>
         <label>
           <div className="muted"><FiUser style={{ verticalAlign: '-2px' }} /> Owner</div>

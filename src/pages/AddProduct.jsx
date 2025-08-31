@@ -5,8 +5,10 @@ import useStore from '../store/useStore.js'
 
 export default function AddProduct() {
   const addProduct = useStore((s) => s.addProduct)
+  const subscribe = useStore((s) => s.subscribe)
+  const products = useStore((s) => s.products)
   const navigate = useNavigate()
-  const [form, setForm] = useState({ name: '', topic: '', owner: '', description: '', tags: '', type: 'stream', window: '', retentionDays: '' })
+  const [form, setForm] = useState({ name: '', topic: '', owner: '', description: '', tags: '', type: 'stream', retentionDays: '', derivesFrom: [] })
 
   const onSubmit = (e) => {
     e.preventDefault()
@@ -24,10 +26,13 @@ export default function AddProduct() {
       messagesPerSec: 50 + Math.round(Math.random() * 200),
     }
     if (!isAnalytics) payload.topic = form.topic || 'topic.new'
-    if (isAnalytics && form.window) payload.window = form.window
   if (form.type === 'stream' && form.retentionDays) payload.retentionDays = Number(form.retentionDays)
     addProduct(payload)
-  setForm({ name: '', topic: '', owner: '', description: '', tags: '', type: 'stream', window: '', retentionDays: '' })
+    // Create lineage edges for derived-from selections
+    for (const pid of form.derivesFrom || []) {
+      subscribe({ fromType: 'product', fromId: payload.id, toProductId: pid })
+    }
+  setForm({ name: '', topic: '', owner: '', description: '', tags: '', type: 'stream', retentionDays: '', derivesFrom: [] })
   }
 
   return (
@@ -36,13 +41,13 @@ export default function AddProduct() {
         <button onClick={() => navigate(-1)} aria-label="Back" style={{ background: 'transparent', border: '1px solid var(--td-border)' }}>
           <FiChevronLeft />
         </button>
-        <h2 style={{ margin: '0 0 0 8px' }}>Add Data Product</h2>
+        <h2 style={{ margin: '0 0 0 8px' }}>Register Data Product</h2>
         <div className="spacer" />
       </div>
       <div className="muted" style={{ marginTop: 6, fontSize: 13 }}>
-        Create a new unified data product. Choose Stream for raw/derived Kafka topics or Analytics for windowed/KPI outputs.
+        Create a new unified data product. Choose Stream for raw/derived streaming data or Analytics for historical datasets stored in Databricks.
       </div>
-      <form onSubmit={onSubmit} className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 16 }}>
+  <form onSubmit={onSubmit} className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 16 }}>
         <div>
           <div className="muted"><FiType style={{ verticalAlign: '-2px' }} /> Type</div>
           <div className="row" role="group" aria-label="Product type" style={{ gap: 8 }}>
@@ -72,13 +77,7 @@ export default function AddProduct() {
           <div className="muted"><FiUser style={{ verticalAlign: '-2px' }} /> Owner</div>
           <input placeholder="e.g., cm-trading" value={form.owner} onChange={(e) => setForm({ ...form, owner: e.target.value })} />
         </label>
-        {form.type === 'analytics' && (
-          <label>
-            <div className="muted"><FiClock style={{ verticalAlign: '-2px' }} /> Window (e.g., 1m, 5m)</div>
-            <input placeholder="e.g., 5m" value={form.window} onChange={(e) => setForm({ ...form, window: e.target.value })} />
-            <small className="muted">Window length for aggregations/KPIs.</small>
-          </label>
-        )}
+  {/* Analytics products represent historical data; no window field */}
         {form.type === 'stream' && (
           <label>
             <div className="muted"><FiClock style={{ verticalAlign: '-2px' }} /> Retention (days)</div>
@@ -86,6 +85,19 @@ export default function AddProduct() {
             <small className="muted">Kafka topic retention policy in days.</small>
           </label>
         )}
+        {/* For derived data products, select source products to establish lineage */}
+        <label style={{ gridColumn: '1 / -1' }}>
+          <div className="muted">Derives from</div>
+          <select multiple value={form.derivesFrom} onChange={(e) => {
+            const opts = Array.from(e.target.selectedOptions).map(o => o.value)
+            setForm({ ...form, derivesFrom: opts })
+          }}>
+            {products.map((p) => (
+              <option key={p.id} value={p.id}>{p.name}</option>
+            ))}
+          </select>
+          <small className="muted">Choose existing products this one is derived from. This builds lineage via subscriptions.</small>
+        </label>
         <label>
           <div className="muted"><FiTag style={{ verticalAlign: '-2px' }} /> Tags</div>
           <input placeholder="comma,separated,tags" value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} />

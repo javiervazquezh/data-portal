@@ -5,13 +5,23 @@ import StreamProcessors from './pages/StreamProcessors.jsx'
 import AddProduct from './pages/AddProduct.jsx'
 import RegisterApplication from './pages/RegisterApplication.jsx'
 import MyApps from './pages/MyApps.jsx'
+import logoUrl from './images/logo.png'
 
 export default function App() {
   return (
     <div className="app">
       <header className="header">
         <div className="header-inner">
-          <div className="logo">TD</div>
+      <div className="logo-wrap">
+            <img
+        src={logoUrl}
+              alt="TDS logo"
+              className="logo-img"
+              onLoad={(e) => { if (e.currentTarget.nextSibling) e.currentTarget.nextSibling.style.display = 'none' }}
+              onError={(e) => { e.currentTarget.style.display = 'none'; if (e.currentTarget.nextSibling) e.currentTarget.nextSibling.style.display = 'grid' }}
+            />
+            <div className="logo-fallback">TD</div>
+          </div>
           <strong className="header-title">TDS Data Portal</strong>
           <nav className="nav">
             <NavLink to="/" end><FiGrid style={{ verticalAlign: '-2px' }} /> Products</NavLink>
