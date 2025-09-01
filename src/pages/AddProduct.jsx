@@ -45,8 +45,8 @@ export default function AddProduct() {
     for (const pid of form.subscribesTo || []) {
       subscribe({ fromType: 'product', fromId: payload.id, toProductId: pid })
     }
-    setForm({ name: '', topic: '', owner: '', description: '', tags: '', type: 'stream', retentionDays: '', derivesFrom: [], subscribesTo: [], schema: '', malcode: 'TRNPY' })
-    navigate('/catalog');
+    setForm({ name: '', topic: '', owner: '', description: '', tags: '', type: 'stream', retentionDays: '', derivesFrom: [], subscribesTo: [], schema: '', malcode: 'TRNPY' });
+    navigate('/');
   }
 
   return (

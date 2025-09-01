@@ -1,0 +1,28 @@
+{
+  "type": "record",
+  "fields": [
+    {
+      "name": "timestamp",
+      "type": "timestamp"
+    },
+    {
+      "name": "symbol",
+      "type": "string"
+    },
+    {
+      "name": "trade_price",
+      "type": "double"    },
+    {
+      "name": "market_price",
+      "type": "double"
+    },
+    {
+      "name": "quantity",
+      "type": "integer"
+    },
+    {
+      "name": "profit_or_loss",
+      "type": "double"
+    }
+  ]
+}

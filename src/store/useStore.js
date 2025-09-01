@@ -25,6 +25,7 @@ const useStore = create((set, get) => ({
     set({ subscriptions: (get().subscriptions || []).filter((e) => !(e.from.type === fromType && e.from.id === fromId && e.to.id === toProductId)) })
   },
   addProduct: (payload) => set({ products: [payload, ...get().products] }),
+  updateProduct: (payload) => set({ products: get().products.map((p) => (p.id === payload.id ? { ...p, ...payload } : p)) }),
   deleteProduct: (id) => set({ products: get().products.filter((p) => p.id !== id) }),
   addApplication: (payload) => set({ applications: [payload, ...(get().applications || [])] }),
   updateApplication: (payload) => set({ applications: (get().applications || []).map((a) => a.id === payload.id ? { ...a, ...payload } : a) }),

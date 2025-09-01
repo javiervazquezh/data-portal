@@ -29,7 +29,7 @@ export function initialProducts() {
       type: 'analytics',
       name: 'EOD Market Data',
       owner: 'Javier Vazquez',
-      description: 'End of Day quotes and trades across venues.',
+      description: 'End of Day quotes across venues.',
       tags: ['market-data', 'quotes', 'eod'],
   schema: { type: 'record', fields: [{ name: 'timestamp', type: 'timestamp' }, { name: 'symbol', type: 'string' }, { name: 'bid', type: 'double' }, { name: 'ask', type: 'double' }, { name: 'last', type: 'double' }] },
   messagesPerSec: 500

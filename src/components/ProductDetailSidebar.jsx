@@ -8,10 +8,14 @@ export default function ProductDetailSidebar({ product, onClose, onSubscribe }) 
   const [showLive, setShowLive] = useState(false)
   const [showLineage, setShowLineage] = useState(false)
   const subscribe = useStore((s) => s.subscribe)
+  const updateProduct = useStore((s) => s.updateProduct)
   const apps = useStore((s) => s.applications)
   const products = useStore((s) => s.products)
   const subs = useStore((s) => s.subscriptions)
   const [subscriber, setSubscriber] = useState({ type: 'product', id: '' })
+  const [editingSchema, setEditingSchema] = useState(false)
+  const [schemaDraft, setSchemaDraft] = useState('')
+  const [schemaError, setSchemaError] = useState('')
   // Default subscriber to first other product to ensure products only subscribe to products
   useEffect(() => {
     if (!subscriber.id && products?.length) {
@@ -55,28 +59,60 @@ export default function ProductDetailSidebar({ product, onClose, onSubscribe }) 
         </div>
 
         <div style={{ marginTop: 16 }}>
-          <strong className="muted" style={{ fontSize: 12 }}><FiCode style={{ verticalAlign: '-2px' }} /> Schema</strong>
-          {product.type === 'analytics' && product.schema?.type === 'table' ? (
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', background: '#ffffff', border: '1px solid var(--td-border)', borderRadius: 8 }}>
-                <thead>
-                  <tr>
-                    <th style={{ textAlign: 'left', padding: '6px 8px', borderBottom: '1px solid var(--td-border)' }}>Column</th>
-                    <th style={{ textAlign: 'left', padding: '6px 8px', borderBottom: '1px solid var(--td-border)' }}>Type</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {product.schema.columns?.map((c) => (
-                    <tr key={c.name}>
-                      <td style={{ padding: '6px 8px', borderBottom: '1px solid var(--td-border)' }}>{c.name}</td>
-                      <td style={{ padding: '6px 8px', borderBottom: '1px solid var(--td-border)' }}>{c.type}</td>
+          <div className="row" style={{ alignItems: 'center' }}>
+            <strong className="muted" style={{ fontSize: 12 }}><FiCode style={{ verticalAlign: '-2px' }} /> Schema</strong>
+            <div className="spacer" />
+            {!editingSchema && (
+              <button onClick={() => { setSchemaDraft(JSON.stringify(product.schema, null, 2)); setEditingSchema(true); setSchemaError('') }}
+                style={{ border: '1px solid var(--td-border)' }} aria-label="Edit schema">Edit</button>
+            )}
+          </div>
+
+          {!editingSchema ? (
+            product.type === 'analytics' && product.schema?.type === 'table' ? (
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', background: '#ffffff', border: '1px solid var(--td-border)', borderRadius: 8 }}>
+                  <thead>
+                    <tr>
+                      <th style={{ textAlign: 'left', padding: '6px 8px', borderBottom: '1px solid var(--td-border)' }}>Column</th>
+                      <th style={{ textAlign: 'left', padding: '6px 8px', borderBottom: '1px solid var(--td-border)' }}>Type</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {product.schema.columns?.map((c) => (
+                      <tr key={c.name}>
+                        <td style={{ padding: '6px 8px', borderBottom: '1px solid var(--td-border)' }}>{c.name}</td>
+                        <td style={{ padding: '6px 8px', borderBottom: '1px solid var(--td-border)' }}>{c.type}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <pre style={{ background: '#ffffff', border: '1px solid var(--td-border)', padding: 8, borderRadius: 8, overflow: 'auto' }}>{JSON.stringify(product.schema, null, 2)}</pre>
+            )
           ) : (
-            <pre style={{ background: '#ffffff', border: '1px solid var(--td-border)', padding: 8, borderRadius: 8, overflow: 'auto' }}>{JSON.stringify(product.schema, null, 2)}</pre>
+            <div>
+              <textarea
+                value={schemaDraft}
+                onChange={(e) => setSchemaDraft(e.target.value)}
+                rows={12}
+                style={{ width: '100%', fontFamily: 'monospace', fontSize: 13, border: '1px solid var(--td-border)', borderRadius: 8 }}
+              />
+              {schemaError && <div className="muted" style={{ color: 'crimson', marginTop: 6 }}>{schemaError}</div>}
+              <div className="row" style={{ gap: 8, marginTop: 8 }}>
+                <button onClick={() => {
+                  try {
+                    const parsed = JSON.parse(schemaDraft)
+                    updateProduct({ id: product.id, schema: parsed })
+                    setEditingSchema(false)
+                  } catch (err) {
+                    setSchemaError('Invalid JSON: ' + err.message)
+                  }
+                }}><FiCode style={{ verticalAlign: '-2px' }} /> Save</button>
+                <button onClick={() => { setEditingSchema(false); setSchemaError('') }} style={{ background: 'transparent', border: '1px solid var(--td-border)' }}>Cancel</button>
+              </div>
+            </div>
           )}
         </div>
 
